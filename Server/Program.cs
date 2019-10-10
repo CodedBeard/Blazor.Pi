@@ -13,6 +13,7 @@ namespace Blazor.Pi.Server
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseUrls("http://*:5000;https://*:5001")
                 .UseConfiguration(new ConfigurationBuilder()
                     .AddCommandLine(args)
                     .Build())

@@ -6,8 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="IoT.Device.Bindings" Version="1.0.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="3.0.0-preview9.19465.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview9.19465.2" />
+    <PackageReference Include="System.Device.Gpio" Version="1.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>

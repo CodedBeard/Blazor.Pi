@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using System.Linq;
+using System.Device.Gpio;
 
 namespace Blazor.Pi.Server
 {
@@ -15,6 +16,7 @@ namespace Blazor.Pi.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().AddNewtonsoftJson();
+            services.AddSingleton<GpioController>();
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
