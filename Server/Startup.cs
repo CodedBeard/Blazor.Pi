@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System.Device.Gpio;
+using Blazor.Pi.Server.Hubs;
 
 namespace Blazor.Pi.Server
 {
@@ -17,6 +18,7 @@ namespace Blazor.Pi.Server
         {
             services.AddMvc().AddNewtonsoftJson();
             services.AddSingleton<GpioController>();
+            services.AddSignalR();
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -44,6 +46,7 @@ namespace Blazor.Pi.Server
             {
                 endpoints.MapDefaultControllerRoute();
                 endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
+                endpoints.MapHub<GPIOHub>("/gpio");
             });
         }
     }

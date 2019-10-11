@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Blazor.Pi.Server.Hubs;
+using System;
 using System.Device.Gpio;
-using Blazor.Pi.Shared;
+using System.Linq;
 
 namespace Blazor.Pi.Server.Controllers
 {
@@ -14,17 +13,20 @@ namespace Blazor.Pi.Server.Controllers
     public class LEDController : ControllerBase
     {
         private readonly int ledPin = 17;
-        private readonly ILogger<LEDController> _logger;
+        private readonly ILogger<LEDController> logger;
+        private readonly IHubContext<GPIOHub> _hubContext;
         private readonly GpioController _controller;
-        
+
         public LEDController(
             ILogger<LEDController> logger,
-            GpioController controller
+            GpioController controller,
+            IHubContext<GPIOHub> hubContext
             )
         {
+            _hubContext = hubContext;
+            this.logger = logger;
+
             _controller = controller;
-            _logger = logger;
-            
             if (!controller.IsPinOpen(ledPin))
             {
                 controller.OpenPin(ledPin, PinMode.Output);
@@ -33,7 +35,8 @@ namespace Blazor.Pi.Server.Controllers
 
         [HttpPost]
         public void Post([FromBody] bool toggle)
-        {            
+        {
+            _hubContext.Clients.All.SendAsync("ReceiveSwitchStatus", toggle);
             if (toggle)
             {
                 _controller.Write(ledPin, PinValue.High);

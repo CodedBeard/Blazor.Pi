@@ -8,11 +8,35 @@
 
 @code {
     bool toggle = false;
+    [Inject] private HubConnectionBuilder _hubConnectionBuilder { get; set; }
+    private Func<bool, Task> handleSwitchStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        handleSwitchStatus += ReceiveSwitchStatus;
+        var gpioConnection = _hubConnectionBuilder // the injected one from above.
+        .WithUrl("/gpio", // The hub URL. If the Hub is hosted on the server where the blazor is hosted, you can just use the relative path.
+        opt =>
+        {
+            opt.LogLevel = SignalRLogLevel.Trace; // Client log level
+            opt.Transport = HttpTransportType.WebSockets; // Which transport you want to use for this connection
+        })
+        .Build(); // Build the HubConnection
+
+        gpioConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus); // Subscribe to messages sent from the Hub to the "Receive" method by passing a handle (Func<object, Task>) to process messages.
+        await gpioConnection.StartAsync(); // Start the connection.
+    }
+
+    Task ReceiveSwitchStatus(bool arg)
+    {
+        toggle = arg;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
 
     async Task ToggleLed()
     {
         toggle = !toggle;
         await Http.SendJsonAsync(HttpMethod.Post, "LED", toggle);
     }
-
 }
