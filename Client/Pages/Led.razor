@@ -5,15 +5,20 @@
 
 <p>Current On: @toggle</p>
 <button class="btn btn-primary" @onclick="ToggleLed">Toggle</button>
-
+<p>
+    Climate Data: @climateData
+</p>
 @code {
     bool toggle = false;
     [Inject] private HubConnectionBuilder _hubConnectionBuilder { get; set; }
     private Func<bool, Task> handleSwitchStatus;
+    private Func<string, Task> handleDhtStatus;
+    private string climateData = "no data!";
 
     protected override async Task OnInitializedAsync()
     {
         handleSwitchStatus += ReceiveSwitchStatus;
+        handleDhtStatus += ReceiveDhtStatus;
         var gpioConnection = _hubConnectionBuilder // the injected one from above.
         .WithUrl("/gpio", // The hub URL. If the Hub is hosted on the server where the blazor is hosted, you can just use the relative path.
         opt =>
@@ -24,12 +29,20 @@
         .Build(); // Build the HubConnection
 
         gpioConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus); // Subscribe to messages sent from the Hub to the "Receive" method by passing a handle (Func<object, Task>) to process messages.
+        gpioConnection.On("ReceiveDhtStatus", this.handleDhtStatus); 
         await gpioConnection.StartAsync(); // Start the connection.
     }
 
     Task ReceiveSwitchStatus(bool arg)
     {
         toggle = arg;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    Task ReceiveDhtStatus(string arg)
+    {
+        climateData = arg;
         StateHasChanged();
         return Task.CompletedTask;
     }

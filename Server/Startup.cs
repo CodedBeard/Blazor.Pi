@@ -7,6 +7,8 @@ using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System.Device.Gpio;
 using Blazor.Pi.Server.Hubs;
+using Blazor.Pi.Server.Services;
+using Iot.Device.DHTxx;
 
 namespace Blazor.Pi.Server
 {
@@ -19,6 +21,8 @@ namespace Blazor.Pi.Server
             services.AddMvc().AddNewtonsoftJson();
             services.AddSingleton<GpioController>();
             services.AddSignalR();
+            services.AddSingleton(new Dht11(4));
+            services.AddHostedService<DHTService>();
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
