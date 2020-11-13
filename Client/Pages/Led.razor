@@ -1,5 +1,9 @@
-﻿@page "/led"
+@page "/led"
+@using System.Net.Http;
+@using System.Net.Http.Json;
+@using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 <h1>Led Toggle</h1>
 
@@ -19,18 +23,13 @@
     {
         handleSwitchStatus += ReceiveSwitchStatus;
         handleDhtStatus += ReceiveDhtStatus;
-        var gpioConnection = _hubConnectionBuilder // the injected one from above.
-        .WithUrl("/gpio", // The hub URL. If the Hub is hosted on the server where the blazor is hosted, you can just use the relative path.
-        opt =>
-        {
-            opt.LogLevel = SignalRLogLevel.Trace; // Client log level
-            opt.Transport = HttpTransportType.WebSockets; // Which transport you want to use for this connection
-        })
-        .Build(); // Build the HubConnection
-
-        gpioConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus); // Subscribe to messages sent from the Hub to the "Receive" method by passing a handle (Func<object, Task>) to process messages.
-        gpioConnection.On("ReceiveDhtStatus", this.handleDhtStatus); 
-        await gpioConnection.StartAsync(); // Start the connection.
+        var gpioConnection = new HubConnectionBuilder()
+                    .WithUrl(NavigationManager.ToAbsoluteUri("/gpio"))
+                    .WithAutomaticReconnect()
+                    .Build();
+            gpioConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus);
+            gpioConnection.On("ReceiveDhtStatus", this.handleDhtStatus);
+            await gpioConnection.StartAsync();
     }
 
     Task ReceiveSwitchStatus(bool arg)
@@ -50,6 +49,6 @@
     async Task ToggleLed()
     {
         toggle = !toggle;
-        await Http.SendJsonAsync(HttpMethod.Post, "LED", toggle);
+        await Http.PostAsJsonAsync("LED", toggle);
     }
 }

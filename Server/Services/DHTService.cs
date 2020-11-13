@@ -33,7 +33,7 @@ namespace Blazor.Pi.Server.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("DHT Service is starting.");
+            //_logger.LogDebug("DHT Service is starting.");
 
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(2));
@@ -43,13 +43,13 @@ namespace Blazor.Pi.Server.Services
 
         private void DoWork(object state)
         {
-            _logger.LogInformation($"DHT Service is working: {DateTime.Now}");
+            //_logger.LogDebug($"DHT Service is working: {DateTime.Now}");
             var temperature = new TemperatureData {
                 Temperature = _dht.Temperature.Celsius,
                 Humidity = _dht.Humidity,
                 IsLastReadSuccessful = _dht.IsLastReadSuccessful,
             };
-            _logger.LogInformation($"Read Success: {temperature.IsLastReadSuccessful}");
+            //_logger.LogDebug($"Read Success: {temperature.IsLastReadSuccessful}");
             if (temperature.IsLastReadSuccessful)
             {
                 _hubContext.Clients.All.SendAsync("ReceiveDhtStatus",$"Temperature: {_dht.Temperature.Celsius.ToString("0.0")} °C, Humidity: {_dht.Humidity.ToString("0.0")} %");
@@ -59,7 +59,7 @@ namespace Blazor.Pi.Server.Services
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("DHT Service is stopping.");
+            //_logger.LogDebug("DHT Service is stopping.");
 
             _timer?.Change(Timeout.Infinite, 0);
 
