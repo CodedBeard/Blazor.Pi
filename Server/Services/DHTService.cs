@@ -19,6 +19,7 @@ namespace Blazor.Pi.Server.Services
         private readonly ILogger _logger;
         private Timer _timer;
         private readonly IHubContext<GPIOHub> _hubContext;
+        internal static TemperatureData DhtData = new TemperatureData();
 
         public DHTService(
             ILogger<DHTService> logger,
@@ -43,18 +44,21 @@ namespace Blazor.Pi.Server.Services
 
         private void DoWork(object state)
         {
-            _logger.LogInformation($"DHT Service is working: {DateTime.Now}");
-            var temperature = new TemperatureData {
-                Temperature = _dht.Temperature.Celsius,
-                Humidity = _dht.Humidity,
+            _logger.LogDebug($"DHT Service is working: {DateTime.Now}");
+            var temperature = new TemperatureData
+            {
+                Temperature = _dht.Temperature.DegreesCelsius,
+                Humidity = _dht.Humidity.Percent,
                 IsLastReadSuccessful = _dht.IsLastReadSuccessful,
             };
-            _logger.LogInformation($"Read Success: {temperature.IsLastReadSuccessful}");
+            _logger.LogDebug($"Read Success: {temperature.IsLastReadSuccessful}");
             if (temperature.IsLastReadSuccessful)
             {
-                _hubContext.Clients.All.SendAsync("ReceiveDhtStatus",$"Temperature: {_dht.Temperature.Celsius.ToString("0.0")} °C, Humidity: {_dht.Humidity.ToString("0.0")} %");
+                DhtData = temperature;
+                var result = $"Temp: {_dht.Temperature.DegreesCelsius:0.0} °C, Humidity: {_dht.Humidity}";
+                _hubContext.Clients.All.SendAsync("ReceiveDhtStatus", result);
             }
-            
+
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
